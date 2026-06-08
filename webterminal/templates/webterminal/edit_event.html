@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modifier l'événement - StageLink</title>
+
+    <style>
+      :root {
+        --bg: #f3f7fb;
+        --panel: rgba(255, 255, 255, 0.88);
+        --text: #0f172a;
+        --muted: #64748b;
+        --line: #e2e8f0;
+        --primary: #0f766e;
+        --primary2: #14b8a6;
+        --primary-dark: #0d5f58;
+        --secondary: #64748b;
+        --shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+        --shadow-hover: 0 18px 50px rgba(15, 23, 42, 0.14);
+        --radius-xl: 22px;
+        --radius-lg: 18px;
+        --radius-md: 14px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        padding: 40px 20px;
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(20, 184, 166, 0.12),
+            transparent 28%
+          ),
+          radial-gradient(
+            circle at top right,
+            rgba(15, 118, 110, 0.1),
+            transparent 26%
+          ),
+          var(--bg);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: 900px;
+        margin: auto;
+      }
+
+      .header {
+        background: linear-gradient(135deg, var(--primary), var(--primary2));
+        color: white;
+        padding: 30px;
+        border-radius: var(--radius-xl);
+        margin-bottom: 20px;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header::after {
+        content: "";
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+        right: -60px;
+        bottom: -80px;
+      }
+
+      .header h1 {
+        font-size: 32px;
+        margin-bottom: 8px;
+      }
+
+      .header p {
+        opacity: 0.9;
+      }
+
+      .card {
+        background: var(--panel);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: var(--radius-xl);
+        padding: 30px;
+        box-shadow: var(--shadow);
+        transition: 0.25s;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hover);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #334155;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 13px 15px;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        background: white;
+        font-size: 15px;
+        transition: 0.2s;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #14b8a6;
+        box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      .row {
+        display: flex;
+        gap: 15px;
+      }
+
+      .row .form-group {
+        flex: 1;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 25px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 700;
+        transition: 0.2s;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 8px 18px rgba(15, 118, 110, 0.18);
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+      }
+
+      .btn-secondary {
+        background: #e2e8f0;
+        color: #334155;
+      }
+
+      .btn-secondary:hover {
+        background: #cbd5e1;
+        transform: translateY(-2px);
+      }
+
+      .form-section-title {
+        font-size: 18px;
+        color: var(--primary);
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      @media (max-width: 768px) {
+        .row {
+          flex-direction: column;
+          gap: 0;
+        }
+
+        .actions {
+          flex-direction: column;
+        }
+
+        .btn {
+          width: 100%;
+        }
+
+        .header h1 {
+          font-size: 26px;
+        }
+      }
+      .back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.85);
+        color: #0f766e;
+        text-decoration: none;
+        font-weight: 600;
+        border: 1px solid #dbe2ea;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        transition: all 0.25s ease;
+      }
+
+      .back:hover {
+        background: #0f766e;
+        color: white;
+        transform: translateX(-3px);
+        box-shadow: 0 8px 20px rgba(15, 118, 110, 0.18);
+      }
+
+      .back:active {
+        transform: translateX(-1px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="container">
+        <a href="{% url 'webterminal:dashboard' %}" class="back">
+          ← Retour au tableau de bord
+        </a>
+
+        <div class="header">
+          <h1>Modifier l'événement</h1>
+          <p>Mettez à jour les informations de votre événement</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <form
+          method="POST"
+          action="{% url 'webterminal:update_event' event.id %}"
+        >
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label>Titre</label>
+            <input
+              type="text"
+              name="titre"
+              value="{{ event.titre }}"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Type</label>
+            <select name="type">
+              <option value="entretien">Entretien</option>
+              <option value="reunion">Réunion</option>
+              <option value="deadline">Deadline / Rapport</option>
+              <option value="validation">Validation</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <div class="form-group">
+              <label>Date</label>
+              <input
+                type="date"
+                name="date"
+                value="{{ event.date }}"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Heure</label>
+              <input
+                type="time"
+                name="heure"
+                value="{{ event.heure }}"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Lieu</label>
+            <input type="text" name="lieu" value="{{ event.lieu }}" />
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="5">
+{{ event.description }}</textarea
+            >
+          </div>
+
+          <div class="actions">
+            <a
+              href="{% url 'webterminal:dashboard' %}"
+              class="btn btn-secondary"
+            >
+              Annuler
+            </a>
+
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

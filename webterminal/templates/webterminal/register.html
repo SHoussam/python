@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Inscription — StageLink</title>
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --card-bg: rgba(255, 255, 255, 0.92);
+        --text: #0f172a;
+        --muted: #64748b;
+        --line: #e2e8f0;
+        --primary: #0f766e;
+        --primary-light: #14b8a6;
+        --primary-dark: #115e59;
+        --danger: #dc2626;
+
+        --radius-xl: 28px;
+        --radius-lg: 18px;
+
+        --shadow: 0 20px 60px rgba(15, 23, 42, 0.08),
+          0 8px 24px rgba(15, 23, 42, 0.05);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        background:
+          radial-gradient(circle at top left, rgba(20, 184, 166, 0.18), transparent 35%),
+          radial-gradient(circle at top right, rgba(15, 118, 110, 0.15), transparent 30%),
+          linear-gradient(135deg, #f8fafc, #eef7f7);
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      .bg-blur {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(120px);
+        z-index: -1;
+      }
+
+      .blur-1 {
+        width: 300px;
+        height: 300px;
+        background: rgba(20, 184, 166, 0.18);
+        top: -80px;
+        left: -80px;
+      }
+
+      .blur-2 {
+        width: 350px;
+        height: 350px;
+        background: rgba(14, 165, 233, 0.12);
+        bottom: -120px;
+        right: -100px;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 860px;
+        background: var(--card-bg);
+        backdrop-filter: blur(18px);
+        border-radius: var(--radius-xl);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        transition: 0.3s;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+      }
+
+      .header {
+        padding: 40px;
+        background: linear-gradient(
+          135deg,
+          #0f766e 0%,
+          #14b8a6 55%,
+          #2dd4bf 100%
+        );
+        color: white;
+      }
+
+      .logo {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 18px;
+        backdrop-filter: blur(10px);
+      }
+
+      .logo span {
+        font-size: 24px;
+        font-weight: 800;
+      }
+
+      .header h2 {
+        font-size: 34px;
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+
+      .header p {
+        opacity: 0.95;
+      }
+
+      .content {
+        padding: 35px;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+
+      .field {
+        margin-bottom: 18px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #334155;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid #dbe4ee;
+        border-radius: 14px;
+        background: white;
+        font-size: 15px;
+        transition: 0.25s;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+        transform: translateY(-1px);
+      }
+
+      .section-title {
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--primary);
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .section-title::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--primary-light);
+      }
+
+      #student-section,
+      #school-section,
+      #company-section {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 22px;
+        margin-top: 24px;
+      }
+
+      button[type="submit"] {
+        width: 100%;
+        margin-top: 10px;
+        padding: 16px;
+        border: none;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #0f766e, #14b8a6);
+        color: white;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.25s;
+        box-shadow: 0 10px 25px rgba(20, 184, 166, 0.25);
+      }
+
+      button[type="submit"]:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 35px rgba(20, 184, 166, 0.35);
+      }
+
+      .error {
+        background: #fef2f2;
+        color: var(--danger);
+        border: 1px solid #fecaca;
+        padding: 14px;
+        border-radius: 14px;
+        margin-bottom: 20px;
+      }
+
+      .login-link {
+        margin-top: 24px;
+        text-align: center;
+        color: var(--muted);
+      }
+
+      .login-link a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      .login-link a:hover {
+        text-decoration: underline;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* Custom dropdown */
+      .custom-select {
+        position: relative;
+        width: 100%;
+      }
+
+      .select-trigger {
+        width: 100%;
+        min-height: 60px;
+        padding: 14px 18px;
+        border: 2px solid rgba(20, 184, 166, 0.55);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.96);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        cursor: pointer;
+        transition: 0.25s ease;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+      }
+
+      .select-trigger:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 28px rgba(20, 184, 166, 0.12);
+      }
+
+      .select-trigger:focus {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+      }
+
+      .select-text {
+        font-size: 17px;
+        font-weight: 500;
+        color: var(--text);
+        text-align: left;
+      }
+
+      .select-text.placeholder {
+        color: #475569;
+      }
+
+      .select-arrow {
+        width: 22px;
+        height: 22px;
+        flex: 0 0 auto;
+        color: #0f766e;
+        transition: 0.25s ease;
+      }
+
+      .custom-select.open .select-arrow {
+        transform: rotate(180deg);
+      }
+
+      .select-panel {
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        border-radius: 22px;
+        padding: 12px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+        max-height: 0;
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+        overflow: auto;
+        pointer-events: none;
+        transition:
+          max-height 0.35s ease,
+          opacity 0.25s ease,
+          transform 0.25s ease;
+        z-index: 30;
+      }
+
+      .custom-select.open .select-panel {
+        max-height: 340px;
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+
+      .select-option {
+        width: 100%;
+        border: none;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 14px;
+        border-radius: 16px;
+        cursor: pointer;
+        text-align: left;
+        transition: 0.22s ease;
+        animation: fadeSlide 0.25s ease;
+      }
+
+      .select-option:hover {
+        background: linear-gradient(
+          90deg,
+          rgba(240, 253, 250, 1),
+          rgba(236, 254, 255, 0.9)
+        );
+        transform: translateX(4px);
+      }
+
+      .select-option.selected {
+        background: linear-gradient(
+          90deg,
+          rgba(20, 184, 166, 0.12),
+          rgba(45, 212, 191, 0.08)
+        );
+      }
+
+      .option-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: linear-gradient(
+          135deg,
+          rgba(20, 184, 166, 0.12),
+          rgba(45, 212, 191, 0.12)
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex: 0 0 auto;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      }
+
+      .option-main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .option-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1.15;
+      }
+
+      .option-sub {
+        margin-top: 4px;
+        font-size: 13px;
+        color: #64748b;
+      }
+
+      .option-check {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0f766e;
+        background: rgba(20, 184, 166, 0.12);
+        font-weight: 900;
+        opacity: 0;
+        transform: scale(0.85);
+        transition: 0.22s ease;
+      }
+
+      .select-option.selected .option-check {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .select-option.placeholder .option-icon {
+        background: rgba(226, 232, 240, 0.75);
+      }
+
+      .select-option.placeholder .option-title {
+        color: #0f766e;
+      }
+
+      .select-help {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      @keyframes fadeSlide {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 18px;
+        }
+
+        .content {
+          padding: 25px;
+        }
+
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+
+        .header {
+          padding: 30px;
+        }
+
+        .header h2 {
+          font-size: 28px;
+        }
+
+        .select-trigger {
+          min-height: 56px;
+          border-radius: 18px;
+        }
+
+        .select-text {
+          font-size: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-blur blur-1"></div>
+    <div class="bg-blur blur-2"></div>
+
+    <div class="card">
+      <div class="header">
+        <div class="logo">
+          <span>SL</span>
+        </div>
+        <h2>StageLink</h2>
+        <p>Créer votre compte et rejoindre la plateforme</p>
+      </div>
+
+      <div class="content">
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="{% url 'webterminal:register_submit' %}">
+          {% csrf_token %}
+
+          <!-- Rôle -->
+          <div class="field">
+            <label for="role-trigger">Rôle</label>
+            <div class="custom-select" id="role-custom">
+              <button
+                type="button"
+                class="select-trigger"
+                id="role-trigger"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+              >
+                <span class="select-text placeholder" id="role-label">Choisir un rôle</span>
+                <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6"></path>
+                </svg>
+              </button>
+
+              <div class="select-panel" id="role-panel" role="listbox">
+                <button type="button" class="select-option selected placeholder" data-value="" data-label="Choisir un rôle">
+                  <div class="option-icon">👤</div>
+                  <div class="option-main">
+                    <div class="option-title">Choisir un rôle</div>
+                    <div class="option-sub">Sélectionnez votre type de compte</div>
+                  </div>
+                  <div class="option-check">✓</div>
+                </button>
+
+                <button type="button" class="select-option" data-value="etudiant" data-label="Étudiant">
+                  <div class="option-icon">🎓</div>
+                  <div class="option-main">
+                    <div class="option-title">Étudiant</div>
+                    <div class="option-sub">Compte pour les étudiants</div>
+                  </div>
+                  <div class="option-check">✓</div>
+                </button>
+
+                <button type="button" class="select-option" data-value="entreprise" data-label="Entreprise">
+                  <div class="option-icon">🏢</div>
+                  <div class="option-main">
+                    <div class="option-title">Entreprise</div>
+                    <div class="option-sub">Compte pour les sociétés</div>
+                  </div>
+                  <div class="option-check">✓</div>
+                </button>
+
+                <button type="button" class="select-option" data-value="ecole" data-label="École">
+                  <div class="option-icon">🏫</div>
+                  <div class="option-main">
+                    <div class="option-title">École</div>
+                    <div class="option-sub">Compte pour les établissements</div>
+                  </div>
+                  <div class="option-check">✓</div>
+                </button>
+              </div>
+
+              <input type="hidden" name="role" id="role-input" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="nom">Nom complet / Raison sociale</label>
+            <input id="nom" name="nom" required />
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" name="email" required />
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="password">Mot de passe</label>
+              <input id="password" type="password" name="password" required />
+            </div>
+
+            <div class="field">
+              <label for="confirm">Confirmer le mot de passe</label>
+              <input id="confirm" type="password" name="confirm" required />
+            </div>
+          </div>
+
+          <!-- Étudiant -->
+          <div id="student-section" class="hidden">
+            <div class="section-title">Informations étudiant</div>
+
+            <div class="form-row">
+              <div class="field">
+                <label for="ecole-trigger">École</label>
+                <div class="custom-select" id="ecole-custom">
+                  <button
+                    type="button"
+                    class="select-trigger"
+                    id="ecole-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                  >
+                    <span class="select-text placeholder" id="ecole-label">Choisir une école</span>
+                    <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M6 9l6 6 6-6"></path>
+                    </svg>
+                  </button>
+
+                  <div class="select-panel" id="ecole-panel" role="listbox">
+                    <button type="button" class="select-option selected placeholder" data-value="" data-label="Choisir une école">
+                      <div class="option-icon">🏫</div>
+                      <div class="option-main">
+                        <div class="option-title">Choisir une école</div>
+                        <div class="option-sub">Sélectionnez votre établissement</div>
+                      </div>
+                      <div class="option-check">✓</div>
+                    </button>
+
+                    {% for ecole in ecoles %}
+                    <button type="button" class="select-option" data-value="{{ ecole.id }}" data-label="{{ ecole.nom }}">
+                      <div class="option-icon">🎓</div>
+                      <div class="option-main">
+                        <div class="option-title">{{ ecole.nom }}</div>
+                        <div class="option-sub">Établissement disponible</div>
+                      </div>
+                      <div class="option-check">✓</div>
+                    </button>
+                    {% endfor %}
+                  </div>
+
+                  <input type="hidden" name="ecole" id="ecole-input" />
+                </div>
+                <div class="select-help">La liste des groupes se filtre automatiquement.</div>
+              </div>
+
+              <div class="field">
+                <label for="groupe-trigger">Groupe</label>
+                <div class="custom-select" id="groupe-custom">
+                  <button
+                    type="button"
+                    class="select-trigger"
+                    id="groupe-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                  >
+                    <span class="select-text placeholder" id="groupe-label">Choisir un groupe</span>
+                    <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M6 9l6 6 6-6"></path>
+                    </svg>
+                  </button>
+
+                  <div class="select-panel" id="groupe-panel" role="listbox">
+                    <button type="button" class="select-option selected placeholder" data-value="" data-label="Choisir un groupe">
+                      <div class="option-icon">📚</div>
+                      <div class="option-main">
+                        <div class="option-title">Choisir un groupe</div>
+                        <div class="option-sub">Sélectionnez votre groupe</div>
+                      </div>
+                      <div class="option-check">✓</div>
+                    </button>
+
+                    {% for groupe in groupes %}
+                    <button
+                      type="button"
+                      class="select-option groupe-option"
+                      data-value="{{ groupe.id }}"
+                      data-ecole="{{ groupe.ecole.id }}"
+                      data-label="{{ groupe.nom }} - {{ groupe.ecole.nom }}"
+                    >
+                      <div class="option-icon">📘</div>
+                      <div class="option-main">
+                        <div class="option-title">{{ groupe.nom }}</div>
+                        <div class="option-sub">{{ groupe.ecole.nom }}</div>
+                      </div>
+                      <div class="option-check">✓</div>
+                    </button>
+                    {% endfor %}
+                  </div>
+
+                  <input type="hidden" name="groupe" id="groupe-input" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- École -->
+          <div id="school-section" class="hidden">
+            <div class="section-title">Informations école</div>
+
+            <div class="field">
+              <label for="school-city">Ville</label>
+              <input id="school-city" name="ville" />
+            </div>
+          </div>
+
+          <!-- Entreprise -->
+          <div id="company-section" class="hidden">
+            <div class="section-title">Informations entreprise</div>
+
+            <div class="field">
+              <label for="secteur">Secteur</label>
+              <input id="secteur" name="secteur" />
+            </div>
+          </div>
+
+          <button type="submit">Créer mon compte</button>
+        </form>
+
+        <div class="login-link">
+          Déjà inscrit ?
+          <a href="{% url 'webterminal:login' %}">Se connecter</a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const roleCustom = document.getElementById("role-custom");
+      const roleTrigger = document.getElementById("role-trigger");
+      const rolePanel = document.getElementById("role-panel");
+      const roleLabel = document.getElementById("role-label");
+      const roleInput = document.getElementById("role-input");
+      const roleOptions = Array.from(rolePanel.querySelectorAll(".select-option"));
+
+      const ecoleCustom = document.getElementById("ecole-custom");
+      const ecoleTrigger = document.getElementById("ecole-trigger");
+      const ecolePanel = document.getElementById("ecole-panel");
+      const ecoleLabel = document.getElementById("ecole-label");
+      const ecoleInput = document.getElementById("ecole-input");
+      const ecoleOptions = Array.from(ecolePanel.querySelectorAll(".select-option"));
+
+      const groupeCustom = document.getElementById("groupe-custom");
+      const groupeTrigger = document.getElementById("groupe-trigger");
+      const groupePanel = document.getElementById("groupe-panel");
+      const groupeLabel = document.getElementById("groupe-label");
+      const groupeInput = document.getElementById("groupe-input");
+      const groupeOptions = Array.from(groupePanel.querySelectorAll(".groupe-option"));
+      const groupeAllOptions = Array.from(groupePanel.querySelectorAll(".select-option"));
+
+      const schoolSection = document.getElementById("school-section");
+      const studentSection = document.getElementById("student-section");
+      const companySection = document.getElementById("company-section");
+
+      const allCustoms = [roleCustom, ecoleCustom, groupeCustom];
+
+      function openSelect(custom) {
+        allCustoms.forEach((c) => {
+          if (c !== custom) {
+            c.classList.remove("open");
+            const t = c.querySelector(".select-trigger");
+            if (t) t.setAttribute("aria-expanded", "false");
+          }
+        });
+
+        custom.classList.add("open");
+        const trigger = custom.querySelector(".select-trigger");
+        if (trigger) trigger.setAttribute("aria-expanded", "true");
+      }
+
+      function closeSelect(custom) {
+        custom.classList.remove("open");
+        const trigger = custom.querySelector(".select-trigger");
+        if (trigger) trigger.setAttribute("aria-expanded", "false");
+      }
+
+      function bindCustomSelect(custom, trigger, options, labelEl, inputEl, placeholderText) {
+        trigger.addEventListener("click", (e) => {
+          e.preventDefault();
+          const isOpen = custom.classList.contains("open");
+          if (isOpen) {
+            closeSelect(custom);
+          } else {
+            openSelect(custom);
+          }
+        });
+
+        options.forEach((opt) => {
+          opt.addEventListener("click", () => {
+            const value = opt.dataset.value || "";
+            const label = opt.dataset.label || placeholderText;
+
+            inputEl.value = value;
+            labelEl.textContent = label;
+            labelEl.classList.toggle("placeholder", !value);
+
+            options.forEach((o) => o.classList.remove("selected"));
+            opt.classList.add("selected");
+
+            closeSelect(custom);
+
+            if (custom === roleCustom) {
+              updateRoleSections();
+            }
+
+            if (custom === ecoleCustom) {
+              filterGroupsBySchool();
+            }
+          });
+        });
+      }
+
+      bindCustomSelect(roleCustom, roleTrigger, roleOptions, roleLabel, roleInput, "Choisir un rôle");
+      bindCustomSelect(ecoleCustom, ecoleTrigger, ecoleOptions, ecoleLabel, ecoleInput, "Choisir une école");
+      bindCustomSelect(groupeCustom, groupeTrigger, groupeAllOptions, groupeLabel, groupeInput, "Choisir un groupe");
+
+      document.addEventListener("click", (e) => {
+        allCustoms.forEach((custom) => {
+          if (!custom.contains(e.target)) {
+            closeSelect(custom);
+          }
+        });
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          allCustoms.forEach(closeSelect);
+        }
+      });
+
+      function updateRoleSections() {
+        const role = roleInput.value;
+
+        if (role === "etudiant") {
+          studentSection.classList.remove("hidden");
+          schoolSection.classList.add("hidden");
+          companySection.classList.add("hidden");
+          ecoleInput.required = true;
+          groupeInput.required = false;
+        } else if (role === "entreprise") {
+          studentSection.classList.add("hidden");
+          schoolSection.classList.add("hidden");
+          companySection.classList.remove("hidden");
+          ecoleInput.required = false;
+          groupeInput.required = false;
+        } else if (role === "ecole") {
+          studentSection.classList.add("hidden");
+          companySection.classList.add("hidden");
+          schoolSection.classList.remove("hidden");
+          ecoleInput.required = false;
+          groupeInput.required = false;
+        } else {
+          studentSection.classList.remove("hidden");
+          schoolSection.classList.add("hidden");
+          companySection.classList.add("hidden");
+          ecoleInput.required = true;
+          groupeInput.required = false;
+        }
+
+        filterGroupsBySchool();
+      }
+
+      function filterGroupsBySchool() {
+        const selectedEcole = ecoleInput.value;
+
+        groupeOptions.forEach((opt) => {
+          const ecoleId = opt.getAttribute("data-ecole");
+          const visible = !selectedEcole || ecoleId === selectedEcole;
+          opt.classList.toggle("hidden", !visible);
+        });
+
+        const selectedGroup = groupeInput.value;
+        if (selectedGroup) {
+          const current = groupeOptions.find((o) => o.dataset.value === String(selectedGroup));
+          if (!current || current.classList.contains("hidden")) {
+            groupeInput.value = "";
+            groupeLabel.textContent = "Choisir un groupe";
+            groupeLabel.classList.add("placeholder");
+            groupeAllOptions.forEach((o) => o.classList.remove("selected"));
+            const placeholder = groupePanel.querySelector('.select-option[data-value=""]');
+            if (placeholder) placeholder.classList.add("selected");
+          }
+        }
+      }
+
+      // Ensure the group dropdown reflects the school filter when reopened
+      ecoleInput.addEventListener("change", filterGroupsBySchool);
+
+      // Initial state
+      roleInput.value = "";
+      ecoleInput.value = "";
+      groupeInput.value = "";
+
+      roleLabel.classList.add("placeholder");
+      ecoleLabel.classList.add("placeholder");
+      groupeLabel.classList.add("placeholder");
+
+      updateRoleSections();
+      filterGroupsBySchool();
+    </script>
+  </body>
+</html>
