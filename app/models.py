@@ -33,6 +33,21 @@ class User(models.Model):
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    group = models.ForeignKey(
+        "Group",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="students"
+    )
+
+    team = models.ForeignKey(
+        "Team",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="students"
+    )
 
     def __str__(self):
         return str(self.user)
@@ -62,12 +77,7 @@ class Team(models.Model):
     )
     name = models.CharField(max_length=100)
 
-    students = models.ManyToManyField(
-        Student,
-        blank=True,
-        related_name="teams"
-    )
-
+    
     def __str__(self):
         return self.name
 
@@ -80,12 +90,6 @@ class Group(models.Model):
     )
     name = models.CharField(max_length=100)
     year = models.IntegerField()
-
-    students = models.ManyToManyField(
-        Student,
-        blank=True,
-        related_name="groups"
-    )
 
     def __str__(self):
         return self.name

@@ -1,162 +1,283 @@
-# StageLink 👨‍🎓👩‍💼📅
+## Collaborative Planning & Engagement Platform
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+### Overview
 
-**StageLink** est un **gestionnaire d'emploi du temps collaboratif** conçu pour les stages et entretiens d'embauche. 
-Développé pour le **Mini-Projet Python — 3ème année IIR** à l'**EMSI Tanger (2025/2026)**.
+StageLink is a collaborative platform designed to strengthen coordination between students, schools, and companies.
 
-```
-╔══════════════════════════════════════════════════════════╗
-║   ███████╗████████╗ █████╗  ██████╗ ███████╗            ║
-║   L I N K  ── Gestionnaire d'emploi du temps            ║
-║            ── Suivi de stage collaboratif               ║
-╚══════════════════════════════════════════════════════════╝
-```
+Unlike traditional internship management systems, StageLink focuses on engagement tracking, communication, event planning, and collaboration between all stakeholders involved in a student's professional journey.
 
-## ✨ Fonctionnalités
+The platform allows schools and companies to monitor student engagement, organize activities, create targeted events, and maintain a shared view of interactions while giving students access to their personal and collaborative schedules.
 
-### 👥 **Multi-rôles**
-- **Admin** : Gestion complète (utilisateurs, événements, groupes)
-- **Étudiant** : Profil, emploi du temps personnel/groupe, création d'événements
-- **Entreprise** : Planification d'entretiens, invitation d'étudiants, vérification disponibilités
-
-### 📅 **Gestion d'événements avancée**
-- Types : `entretien`, `reunion`, `deadline`, `validation`, `cours`
-- Partage individuel (inviter étudiants spécifiques) ou par groupe
-- **Détection automatique de conflits** (même date/heure)
-- CRUD complet (créer/voir/modifier/supprimer/rechercher)
-- Filtrage par type, disponibilités par date
-
-### 🛡️ **Sécurité & Authentification**
-- Inscription avec **vérification email** (SMTP configurable)
-- Connexion sécurisée (3 tentatives max)
-- Vérification admin pour entreprises
-- Validation des inputs (email, date/heure, etc.)
-
-### 💾 **Persistance**
-- Stockage JSON automatique (`data.json`)
-- Sauvegarde à chaque modification / sortie propre
-- Gestion des erreurs (fichier manquant/corrompu)
-
-### 👥 **Groupes collaboratifs**
-- Création/gestion par admin
-- Ajout/retrait d'étudiants
-- Événements partagés au groupe entier
-
-## 🗂️ Structure du projet
-
-```
-.
-├── main.py                 # Point d'entrée & menu principal
-├── data.py                 # Structures de données globales
-├── storage.py              # Persistance JSON
-├── authentification.py     # Inscription/connexion/email
-├── admin.py                # Panneau admin complet
-├── etudiant.py             # Interface étudiant
-├── entreprise.py           # Interface entreprise
-├── evenements.py           # CRUD événements partagé
-├── data.json               # Base de données (auto-générée)
-├── README.md               # 📄 Ce fichier
-```
-
-## 🚀 Installation & Démarrage
-
-1. **Clonez/Téléchargez** le projet
-2. **Python 3.8+** requis (stdlib uniquement)
-3. **Configuration email** (optionnel, pour vérification) :
-   ```bash
-   # Windows (PowerShell)
-   $env:STAGELINK_SMTP_SERVER="smtp.gmail.com"
-   $env:STAGELINK_SMTP_PORT="465"
-   $env:STAGELINK_SMTP_EMAIL="votre.email@gmail.com"
-   $env:STAGELINK_SMTP_PASSWORD="votre-app-password"
-
-   # Linux/Mac
-   export STAGELINK_SMTP_SERVER="smtp.gmail.com"
-   export STAGELINK_SMTP_PORT="465"
-   export STAGELINK_SMTP_EMAIL="votre.email@gmail.com"
-   export STAGELINK_SMTP_PASSWORD="votre-app-password"
-   ```
-4. **Lancez** :
-   ```bash
-   python main.py
-   ```
-
-## 📱 Capture d'écran (CLI)
-
-```
-===== MENU PRINCIPAL =====
-  1. Se connecter
-  2. S'inscrire  
-  0. Quitter
-Votre choix : 
-```
-
-**Admin Dashboard** :
-```
-─── Résumé admin ───
-  Admins         : 1
-  Étudiants      : 5
-  Entreprises    : 2
-  Non vérifiées  : 1
-  Événements     : 3
-  Groupes        : 1
-```
-
-## 🗄️ Modèle de données (data.json)
-
-```json
-{
-  "administrateurs": [{"id":1,"nom":"Admin","email":"admin@emsi.ma","password":"pass"}],
-  "etudiants": [{"id":1,"nom":"Etudiant","email":"etu@emsi.ma","ecole":"EMSI","groupe":"GroupeA"}],
-  "entreprises": [{"id":1,"nom":"EntrepriseX","email":"rh@entreprise.com","verified":true}],
-  "evenements": [{
-    "id":1,"titre":"Entretien Stage","type":"entretien","date":"2025-01-15",
-    "heure":"14:00","lieu":"Zoom","createur_role":"entreprise","createur_id":1,
-    "partage_avec":[1,2],"groupe":null
-  }],
-  "groupes": [{"id":1,"nom":"GroupeA","membres":[1,2]}],
-  "next_ids": {"administrateurs":2,"etudiants":2,...}
-}
-```
-
-## 👨‍💼 Utilisation typique
-
-1. **Admin** : Crée étudiants/entreprises, vérifie entreprises, gère groupes/événements
-2. **Étudiant** : S'inscrit, vérifie email, voit emploi du temps, crée rappels deadlines
-3. **Entreprise** : S'inscrit → vérif admin → planifie entretiens → invite étudiants
-
-## 🔧 Admin - Tâches importantes
-
-```
-1. Lister/Ajouter/Modifier/Supprimer utilisateurs
-6. Vérifier une entreprise ← CRITIQUE
-7. Voir/Créer/Modifier/Supprimer événements
-13. Gérer les groupes
-```
-
-## 🚀 Améliorations futures
-
-- [ ] Interface web (Flask/FastAPI)
-- [ ] Notifications push (email/SMS)
-- [ ] Calendrier iCal/Google Calendar export
-- [ ] Dashboard analytics (stats entretiens)
-- [ ] Upload CV/portfolios
-- [ ] Matching IA étudiants/offres
-
-## 🐛 Dépannage
-
-- **Email non envoyé** : Vérifiez variables d'environnement SMTP
-- **data.json corrompu** : Supprimez-le (re-créé vide)
-- **Pas d'admin** : Ajoutez manuellement dans data.json ou via menu admin
-
-## 📄 Licence
-
-MIT License - Voir [LICENSE](LICENSE) (à créer)
+Built with Django and a relational database architecture, StageLink provides secure authentication, email verification, role-based access control, and event management capabilities.
 
 ---
 
-**Développé avec ❤️ pour EMSI Tanger**  
-*Mise à jour : `date`**  
-*Generated by BLACKBOXAI*
+## Features
+
+- User registration and authentication
+- Email verification
+- Password recovery
+- Role-based access control
+- Student group management
+- Internship team management
+- Event creation and scheduling
+- Student engagement monitoring
+- School and company collaboration
+- Personalized dashboards
+- Session-based authentication
+
+---
+
+## User Roles
+
+### Student
+
+Students can:
+
+- Create personal events visible only to themselves
+- View events assigned directly to them
+- View events assigned to their groups
+- View events assigned to their internship teams
+- View events created by schools and companies that concern them
+- Manage their personal schedule
+
+### School
+
+Schools can:
+
+- Manage student groups
+- Monitor student engagement with companies
+- Create events for groups or specific students
+- View students belonging to their groups
+- Coordinate activities with companies
+
+### Company
+
+Companies can:
+
+- Manage internship teams
+- Follow student engagement
+- Create events for teams or specific students
+- Organize meetings, interviews, and collaborative activities
+- Coordinate with schools
+
+---
+
+## Core Modules
+
+### Authentication
+
+The authentication system includes:
+
+- User registration
+- Email verification
+- Secure password hashing
+- Login and logout
+- Password recovery
+- Session-based authentication
+
+### Group Management
+
+Schools can create and manage groups containing students.
+
+Features:
+
+- Group creation
+- Student assignment
+- Group-based event targeting
+- Group membership management
+
+### Team Management
+
+Companies can create and manage internship teams containing students.
+
+Features:
+
+- Team creation
+- Student assignment
+- Team-based event targeting
+- Internship collaboration support
+
+### Event Management
+
+Events can target:
+
+- Individual students
+- Groups
+- Teams
+
+The platform determines event visibility based on student memberships and participation relationships.
+
+Example event types:
+
+- Meetings
+- Workshops
+- Interviews
+- School activities
+- Internship activities
+- Collaborative sessions
+
+### User Dashboard
+
+Role-specific dashboards provide:
+
+- User information
+- Related groups or teams
+- School or company associations
+- Relevant events
+- Participation information
+
+---
+
+## Database Architecture
+
+### Main Entities
+
+- User
+- Student
+- School
+- Company
+- Group
+- Team
+- Event
+- EventParticipant
+
+### Relationships
+
+```text
+School
+├── Groups
+└── Students
+
+Company
+├── Teams
+└── Students
+
+Events
+├── Groups
+├── Teams
+└── Participants
+```
+
+### Data Model Overview
+
+```text
+User
+├── Student
+├── School
+└── Company
+
+School
+├── Groups
+└── Students
+
+Company
+├── Teams
+└── Students
+
+Event
+├── EventParticipant
+├── Groups
+└── Teams
+```
+
+---
+
+## Technology Stack
+
+| Technology | Purpose |
+|------------|---------|
+| Python 3 | Programming Language |
+| Django | Backend Framework |
+| SQLite | Development Database |
+| SMTP | Email Verification |
+| Session Authentication | User Authentication |
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Python 3.10+
+- pip
+- Virtual environment (recommended)
+
+### Setup
+
+```bash
+git clone https://github.com/your-username/stagelink.git
+
+cd stagelink
+
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# Linux / macOS
+source venv/bin/activate
+
+pip install -r requirements.txt
+
+python manage.py migrate
+
+python manage.py runserver
+```
+
+The application will be available at:
+
+```text
+http://127.0.0.1:8000/
+```
+
+---
+
+## Security Features
+
+- Secure password hashing
+- Email verification
+- Session-based authentication
+- Role-based authorization
+- Protected user resources
+- Account recovery functionality
+
+---
+
+## Future Improvements
+
+Planned enhancements include:
+
+- REST API documentation
+- Frontend application
+- Notification system
+- File sharing
+- Internship tracking
+- Analytics dashboard
+- Messaging system
+- Mobile application
+- Third-party integrations
+
+---
+
+## Educational Objectives
+
+This project demonstrates:
+
+- Backend Architecture Design
+- Database Modeling
+- Authentication and Authorization
+- Session Management
+- API Development
+- Relational Data Modeling
+- Event Management Systems
+- Collaborative Platform Design
+- Django Application Development
+
+---
+
+## Project Vision
+
+StageLink aims to create a centralized environment where students, schools, and companies can collaborate effectively throughout the professional development journey.
+
+By bringing together engagement tracking, communication, scheduling, and event management, the platform helps strengthen educational partnerships and improve student opportunities.
