@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST ,require_GET
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import make_password, check_password
 import random
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from .models import User , Student , School , Company ,Group,Team , Event , EventParticipant
 from django.db.models import Q
 
@@ -210,6 +210,7 @@ def update_password(request):
         {"message": "Password updated successfully"},
         status=200
     )
+@ensure_csrf_cookie
 @csrf_exempt
 @require_GET
 def get_user(request):
