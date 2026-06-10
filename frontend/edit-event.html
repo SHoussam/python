@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StageLink — Edit event</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h1>Edit event</h1>
+          <p id="sub">Update an event you created.</p>
+        </div>
+        <a class="btn secondary inline" href="planning.html">← Back to planning</a>
+      </div>
+
+      <div class="card span-2" style="max-width:680px">
+        <div class="alert" id="alert"></div>
+        <p class="muted" style="margin-top:0;font-size:13px">
+          Only the fields you change will be updated. Leave a field blank to keep its current value.
+          You can only edit events you created.
+        </p>
+        <form id="editForm" novalidate>
+          <div class="field">
+            <label for="title">Title</label>
+            <input type="text" id="title" placeholder="New title (leave blank to keep)" />
+          </div>
+          <div class="field">
+            <label for="description">Description</label>
+            <textarea id="description" placeholder="New description (leave blank to keep)"></textarea>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="start_date">Starts</label>
+              <input type="datetime-local" id="start_date" />
+            </div>
+            <div class="field">
+              <label for="end_date">Ends</label>
+              <input type="datetime-local" id="end_date" />
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:6px">
+            <button class="btn" type="submit" id="submitBtn">Save changes</button>
+            <button class="btn danger" type="button" id="deleteBtn">Delete event</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const alertEl = document.getElementById("alert");
+    const btn = document.getElementById("submitBtn");
+    const qp = new URLSearchParams(location.search);
+    const eventId = qp.get("id");
+
+    (async function () {
+      const me = await requireAuth();
+      if (!me) return;
+      renderSidebar(me, "planning");
+
+      if (!eventId) {
+        showAlert(alertEl, "error", "No event selected. Go back to Planning and choose an event.");
+        document.getElementById("editForm").style.display = "none";
+        return;
+      }
+      // Prefill the title (the only detail the API exposes in lists).
+      if (qp.get("title")) document.getElementById("title").value = qp.get("title");
+      document.getElementById("sub").textContent = "Editing event #" + eventId + ".";
+    })();
+
+    document.getElementById("editForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideAlert(alertEl);
+
+      const start = document.getElementById("start_date").value;
+      const end = document.getElementById("end_date").value;
+      if (start && end && new Date(end) < new Date(start)) {
+        showAlert(alertEl, "error", "End date must be after start date.");
+        return;
+      }
+
+      // Only send non-empty fields (backend keeps existing values for blanks).
+      const payload = {};
+      const title = document.getElementById("title").value.trim();
+      const desc = document.getElementById("description").value.trim();
+      if (title) payload.title = title;
+      if (desc) payload.description = desc;
+      if (start) payload.start_date = start;
+      if (end) payload.end_date = end;
+
+      if (!Object.keys(payload).length) {
+        showAlert(alertEl, "error", "Nothing to update — change at least one field.");
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = "Saving…";
+      try {
+        await api.editEvent(eventId, payload);
+        showAlert(alertEl, "success", "Event updated. Redirecting…");
+        setTimeout(() => (window.location.href = "planning.html"), 1100);
+      } catch (err) {
+        showAlert(alertEl, "error", err.status === 403
+          ? "You can only edit events you created."
+          : (err.message || "Could not update event."));
+        btn.disabled = false; btn.textContent = "Save changes";
+      }
+    });
+
+    document.getElementById("deleteBtn").addEventListener("click", async () => {
+      if (!confirm("Delete this event permanently?")) return;
+      hideAlert(alertEl);
+      try {
+        await api.removeEvent(eventId);
+        showAlert(alertEl, "success", "Event deleted. Redirecting…");
+        setTimeout(() => (window.location.href = "planning.html"), 1000);
+      } catch (err) {
+        showAlert(alertEl, "error", err.status === 403
+          ? "You can only delete events you created."
+          : (err.message || "Could not delete event."));
+      }
+    });
+  </script>
+</body>
+</html>

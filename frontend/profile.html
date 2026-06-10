@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StageLink — Profile</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h1>Dashboard</h1>
+          <p id="welcome">Your personal overview.</p>
+        </div>
+        <a class="btn inline" href="create-event.html">➕ New event</a>
+      </div>
+
+      <div id="content"><div class="spinner"></div></div>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    (async function () {
+      const me = await requireAuth();
+      if (!me) return;
+      renderSidebar(me, "profile");
+      document.getElementById("welcome").textContent = "Welcome back, " + me.first_name + " — here's your " + me.role + " overview.";
+      document.getElementById("content").innerHTML = render(me);
+    })();
+
+    function statCard(num, lbl) {
+      return `<div class="card"><div class="stat"><span class="num">${num}</span><span class="lbl">${esc(lbl)}</span></div></div>`;
+    }
+
+    function listCard(title, items, emptyMsg) {
+      const body = (items && items.length)
+        ? `<div class="list">${items.map((i) => `<div class="list-item"><div class="li-main"><div class="li-title">${esc(i.title || i.name)}</div></div></div>`).join("")}</div>`
+        : `<p class="muted">${esc(emptyMsg)}</p>`;
+      return `<div class="card span-2"><h3>${esc(title)}</h3>${body}</div>`;
+    }
+
+    function render(me) {
+      const identity = `
+        <div class="card">
+          <h3>Account</h3>
+          <dl class="kv">
+            <dt>Name</dt><dd>${esc(me.first_name)} ${esc(me.last_name)}</dd>
+            <dt>Email</dt><dd>${esc(me.email)}</dd>
+            <dt>Role</dt><dd><span class="badge">${esc(me.role)}</span></dd>
+            <dt>Status</dt><dd>${me.is_verified ? '<span class="badge green">Verified</span>' : '<span class="badge gray">Unverified</span>'}</dd>
+          </dl>
+        </div>`;
+
+      let cards = "";
+
+      if (me.role === "student") {
+        const assoc = `
+          <div class="card">
+            <h3>Memberships</h3>
+            <dl class="kv">
+              <dt>Group</dt><dd>${me.group ? esc(me.group.name) : '<span class="muted">—</span>'}</dd>
+              <dt>School</dt><dd>${me.school ? esc(me.school.name) : '<span class="muted">—</span>'}</dd>
+              <dt>Team</dt><dd>${me.team ? esc(me.team.name) : '<span class="muted">—</span>'}</dd>
+              <dt>Company</dt><dd>${me.company ? esc(me.company.name) : '<span class="muted">—</span>'}</dd>
+            </dl>
+          </div>`;
+        cards = identity + assoc +
+          statCard((me.events || []).length, "Events visible to you") +
+          listCard("Your events", me.events, "No events yet. Create a personal event to get started.");
+      } else if (me.role === "school") {
+        cards = identity +
+          statCard((me.groups || []).length, "Groups") +
+          statCard((me.students || []).length, "Students") +
+          statCard((me.events || []).length, "Events created") +
+          listCard("Your groups", me.groups, "No groups yet. Create one in Groups / Teams.") +
+          listCard("Your events", me.events, "No events created yet.");
+      } else if (me.role === "company") {
+        cards = identity +
+          statCard((me.teams || []).length, "Teams") +
+          statCard((me.students || []).length, "Interns") +
+          statCard((me.events || []).length, "Events created") +
+          listCard("Your teams", me.teams, "No teams yet. Create one in Groups / Teams.") +
+          listCard("Your events", me.events, "No events created yet.");
+      }
+
+      return `<div class="cards">${cards}</div>`;
+    }
+  </script>
+</body>
+</html>

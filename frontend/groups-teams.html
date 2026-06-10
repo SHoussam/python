@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StageLink — Groups &amp; Teams</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h1 id="title">Groups &amp; Teams</h1>
+          <p id="sub">Manage your groups and teams.</p>
+        </div>
+      </div>
+
+      <div class="alert" id="alert"></div>
+      <div id="content"><div class="spinner"></div></div>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const alertEl = document.getElementById("alert");
+    let ME = null;
+
+    (async function () {
+      ME = await requireAuth();
+      if (!ME) return;
+      renderSidebar(ME, "groups");
+      if (ME.role === "school") await renderSchool();
+      else if (ME.role === "company") await renderCompany();
+      else await renderStudent();
+    })();
+
+    /* ---------------- SCHOOL ---------------- */
+    async function renderSchool() {
+      document.getElementById("title").textContent = "Groups";
+      document.getElementById("sub").textContent = "Create and review your student groups.";
+      const myIds = new Set((ME.groups || []).map((g) => g.id));
+      const all = await api.groups().catch(() => ({ groups: [] }));
+      const mine = (all.groups || []).filter((g) => myIds.has(g.id));
+
+      document.getElementById("content").innerHTML = `
+        <div class="cards">
+          <div class="card">
+            <h3>Create a group</h3>
+            <form id="createForm">
+              <div class="field">
+                <label for="name">Group name</label>
+                <input type="text" id="name" placeholder="e.g. Group 5" required />
+              </div>
+              <div class="field">
+                <label for="year">Year</label>
+                <input type="number" id="year" min="1" max="9" step="1" placeholder="e.g. 3" required />
+                <div class="hint">A number only (the backend stores the year as an integer).</div>
+              </div>
+              <button class="btn" type="submit" id="createBtn">Create group</button>
+            </form>
+          </div>
+          <div class="card span-2">
+            <h3>Your groups (${mine.length})</h3>
+            <div id="listWrap">${groupList(mine)}</div>
+          </div>
+        </div>`;
+
+      bindCreate("createForm", "createBtn", async () => {
+        await api.createGroup({
+          name: document.getElementById("name").value.trim(),
+          year: document.getElementById("year").value.trim(),
+        });
+      }, "Group created.");
+    }
+
+    function groupList(groups) {
+      if (!groups.length) return `<p class="muted">No groups yet.</p>`;
+      return `<div class="list">${groups.map((g) => `
+        <div class="list-item">
+          <div class="li-main">
+            <div class="li-title">${esc(g.name)} <span class="badge gray">${esc(g.year)}</span></div>
+            <div class="li-sub">${g.students && g.students.length ? g.students.map((s) => esc(s.name)).join(", ") : "No students yet"}</div>
+          </div>
+          <span class="badge">${(g.students || []).length} 👤</span>
+        </div>`).join("")}</div>`;
+    }
+
+    /* ---------------- COMPANY ---------------- */
+    async function renderCompany() {
+      document.getElementById("title").textContent = "Teams";
+      document.getElementById("sub").textContent = "Create and review your internship teams.";
+      const myIds = new Set((ME.teams || []).map((t) => t.id));
+      const all = await api.teams().catch(() => ({ teams: [] }));
+      const mine = (all.teams || []).filter((t) => myIds.has(t.id));
+
+      document.getElementById("content").innerHTML = `
+        <div class="cards">
+          <div class="card">
+            <h3>Create a team</h3>
+            <form id="createForm">
+              <div class="field">
+                <label for="name">Team name</label>
+                <input type="text" id="name" placeholder="e.g. Backend Team" required />
+              </div>
+              <button class="btn" type="submit" id="createBtn">Create team</button>
+            </form>
+          </div>
+          <div class="card span-2">
+            <h3>Your teams (${mine.length})</h3>
+            <div id="listWrap">${teamList(mine)}</div>
+          </div>
+        </div>`;
+
+      bindCreate("createForm", "createBtn", async () => {
+        await api.createTeam({ name: document.getElementById("name").value.trim() });
+      }, "Team created.");
+    }
+
+    function teamList(teams) {
+      if (!teams.length) return `<p class="muted">No teams yet.</p>`;
+      return `<div class="list">${teams.map((t) => `
+        <div class="list-item">
+          <div class="li-main">
+            <div class="li-title">${esc(t.name)}</div>
+            <div class="li-sub">${t.students && t.students.length ? t.students.map((s) => esc(s.name)).join(", ") : "No interns yet"}</div>
+          </div>
+          <span class="badge">${(t.students || []).length} 👤</span>
+        </div>`).join("")}</div>`;
+    }
+
+    /* ---------------- STUDENT (view only) ---------------- */
+    async function renderStudent() {
+      document.getElementById("title").textContent = "My Group & Team";
+      document.getElementById("sub").textContent = "View the group and internship team you belong to.";
+
+      // Pull full group/team details (incl. members) to enrich the view.
+      const [allG, allT] = await Promise.all([
+        api.groups().catch(() => ({ groups: [] })),
+        api.teams().catch(() => ({ teams: [] })),
+      ]);
+      const myGroup = ME.group ? (allG.groups || []).find((g) => g.id === ME.group.id) : null;
+      const myTeam = ME.team ? (allT.teams || []).find((t) => t.id === ME.team.id) : null;
+
+      const members = (people) =>
+        (people && people.length)
+          ? `<div class="list" style="margin-top:12px">${people.map((p) =>
+              `<div class="list-item"><div class="li-main"><div class="li-title">${esc(p.name)}</div></div></div>`).join("")}</div>`
+          : `<p class="muted" style="margin-top:12px">No other members yet.</p>`;
+
+      document.getElementById("content").innerHTML = `
+        <div class="cards">
+          <div class="card">
+            <h3>Group</h3>
+            ${ME.group ? `<dl class="kv">
+              <dt>Group</dt><dd>${esc(ME.group.name)}</dd>
+              <dt>School</dt><dd>${ME.school ? esc(ME.school.name) : "—"}</dd>
+              ${myGroup ? `<dt>Year</dt><dd>${esc(myGroup.year)}</dd>` : ""}
+            </dl>
+            <h3 style="margin-top:18px;font-size:14px">Group members${myGroup ? ` (${(myGroup.students || []).length})` : ""}</h3>
+            ${myGroup ? members(myGroup.students) : ""}`
+            : `<p class="muted">You are not in a group.</p>`}
+          </div>
+          <div class="card">
+            <h3>Internship team</h3>
+            ${ME.team ? `<dl class="kv">
+              <dt>Team</dt><dd>${esc(ME.team.name)}</dd>
+              <dt>Company</dt><dd>${ME.company ? esc(ME.company.name) : "—"}</dd>
+            </dl>
+            <h3 style="margin-top:18px;font-size:14px">Team members${myTeam ? ` (${(myTeam.students || []).length})` : ""}</h3>
+            ${myTeam ? members(myTeam.students) : ""}`
+            : `<p class="muted">You are not in an internship team.</p>`}
+          </div>
+        </div>`;
+    }
+
+    /* ---------------- shared create handler ---------------- */
+    function bindCreate(formId, btnId, doCreate, successMsg) {
+      const form = document.getElementById(formId);
+      const btn = document.getElementById(btnId);
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideAlert(alertEl);
+        btn.disabled = true;
+        const label = btn.textContent;
+        btn.textContent = "Saving…";
+        try {
+          await doCreate();
+          showAlert(alertEl, "success", successMsg + " Refreshing…");
+          setTimeout(() => location.reload(), 900);
+        } catch (err) {
+          showAlert(alertEl, "error", err.message || "Could not save.");
+          btn.disabled = false; btn.textContent = label;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

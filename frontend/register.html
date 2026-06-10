@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StageLink — Register</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="auth-wrap">
+    <aside class="auth-hero">
+      <div class="brand">StageLink</div>
+      <div>
+        <h1>Create your<br />account</h1>
+        <p>Join as a student, a school or a company and start coordinating your professional journey.</p>
+        <ul>
+          <li><strong>Students</strong> join a group (and optionally an internship team)</li>
+          <li><strong>Schools</strong> manage groups of students</li>
+          <li><strong>Companies</strong> manage internship teams</li>
+        </ul>
+      </div>
+      <div class="foot">© StageLink — Collaborative Planning &amp; Engagement Platform</div>
+    </aside>
+
+    <main class="auth-panel">
+      <div class="auth-card">
+        <h2>Sign up</h2>
+        <p class="sub">It only takes a minute.</p>
+
+        <div class="alert" id="alert"></div>
+
+        <form id="regForm" novalidate>
+          <div class="field">
+            <label for="role">I am a…</label>
+            <select id="role" name="role" required>
+              <option value="student">Student</option>
+              <option value="school">School</option>
+              <option value="company">Company</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="first_name">First name</label>
+              <input type="text" id="first_name" required />
+            </div>
+            <div class="field">
+              <label for="last_name">Last name</label>
+              <input type="text" id="last_name" required />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" autocomplete="email" required />
+          </div>
+
+          <!-- Student-only -->
+          <div data-role-only data-roles="student" id="studentFields">
+            <div class="field">
+              <label for="group_id">Group</label>
+              <select id="group_id"></select>
+              <div class="hint">Required for students.</div>
+            </div>
+            <div class="field">
+              <label for="team_id">Internship team <span class="muted">(optional)</span></label>
+              <select id="team_id"><option value="">— None —</option></select>
+            </div>
+          </div>
+
+          <!-- School-only -->
+          <div data-role-only data-roles="school">
+            <div class="field">
+              <label for="school_name">School name</label>
+              <input type="text" id="school_name" placeholder="e.g. EMSI Tanger" />
+            </div>
+          </div>
+
+          <!-- Company-only -->
+          <div data-role-only data-roles="company">
+            <div class="field">
+              <label for="company_name">Company name</label>
+              <input type="text" id="company_name" placeholder="e.g. Capgemini" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="password">Password</label>
+              <input type="password" id="password" autocomplete="new-password" required />
+            </div>
+            <div class="field">
+              <label for="confirm_password">Confirm password</label>
+              <input type="password" id="confirm_password" autocomplete="new-password" required />
+            </div>
+          </div>
+
+          <button class="btn" type="submit" id="submitBtn">Create account</button>
+        </form>
+
+        <p class="form-foot">Already have an account? <a href="login.html">Sign in</a></p>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const form = document.getElementById("regForm");
+    const alertEl = document.getElementById("alert");
+    const btn = document.getElementById("submitBtn");
+    const roleSel = document.getElementById("role");
+
+    function applyRole() {
+      const role = roleSel.value;
+      document.querySelectorAll("[data-role-only]").forEach((el) => {
+        el.style.display = el.dataset.roles.split(",").includes(role) ? "block" : "none";
+      });
+    }
+    roleSel.addEventListener("change", applyRole);
+
+    // Load groups & teams to populate the student selectors.
+    async function loadOptions() {
+      try {
+        const [g, t] = await Promise.all([api.groups(), api.teams()]);
+        const gSel = document.getElementById("group_id");
+        gSel.innerHTML = '<option value="">— Select a group —</option>' +
+          (g.groups || []).map((x) => `<option value="${x.id}">${esc(x.name)} · ${esc(x.year)} (${esc(x.school.name)})</option>`).join("");
+        const tSel = document.getElementById("team_id");
+        tSel.innerHTML = '<option value="">— None —</option>' +
+          (t.teams || []).map((x) => `<option value="${x.id}">${esc(x.name)} (${esc(x.company.name)})</option>`).join("");
+      } catch (e) {
+        // Groups/teams may be empty on a fresh install — that's fine.
+      }
+    }
+
+    applyRole();
+    loadOptions();
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideAlert(alertEl);
+
+      const role = roleSel.value;
+      const pwd = document.getElementById("password").value;
+      const cpwd = document.getElementById("confirm_password").value;
+      if (pwd !== cpwd) { showAlert(alertEl, "error", "Passwords do not match."); return; }
+
+      const payload = {
+        role,
+        first_name: document.getElementById("first_name").value.trim(),
+        last_name: document.getElementById("last_name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        password: pwd,
+        confirm_password: cpwd,
+      };
+      if (role === "student") {
+        if (!document.getElementById("group_id").value) { showAlert(alertEl, "error", "Please select a group."); return; }
+        payload.group_id = document.getElementById("group_id").value;
+        payload.team_id = document.getElementById("team_id").value || "";
+      } else if (role === "school") {
+        payload.school_name = document.getElementById("school_name").value.trim();
+      } else if (role === "company") {
+        payload.company_name = document.getElementById("company_name").value.trim();
+      }
+
+      btn.disabled = true; btn.textContent = "Creating…";
+      try {
+        await api.register(payload);
+        window.location.href = "verify.html?email=" + encodeURIComponent(payload.email);
+      } catch (err) {
+        showAlert(alertEl, "error", err.message || "Registration failed.");
+      } finally {
+        btn.disabled = false; btn.textContent = "Create account";
+      }
+    });
+  </script>
+</body>
+</html>

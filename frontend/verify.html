@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StageLink — Verify account</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="auth-wrap">
+    <aside class="auth-hero">
+      <div class="brand">StageLink</div>
+      <div>
+        <h1>Check your<br />inbox</h1>
+        <p>We sent a 6-digit verification code to your email address. Enter it below to activate your account.</p>
+        <ul>
+          <li>The code is valid for your most recent request</li>
+          <li>Didn't get it? You can resend a new code</li>
+        </ul>
+      </div>
+      <div class="foot">© StageLink — Collaborative Planning &amp; Engagement Platform</div>
+    </aside>
+
+    <main class="auth-panel">
+      <div class="auth-card">
+        <h2>Verify your account</h2>
+        <p class="sub">Enter the code we emailed you.</p>
+
+        <div class="alert" id="alert"></div>
+
+        <form id="verifyForm" novalidate>
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="code">Verification code</label>
+            <input type="text" id="code" inputmode="numeric" maxlength="6" placeholder="123456"
+                   style="letter-spacing:8px;font-size:20px;text-align:center" required />
+          </div>
+          <button class="btn" type="submit" id="submitBtn">Verify account</button>
+        </form>
+
+        <p class="form-foot">
+          Didn't receive a code? <a href="#" id="resend">Resend code</a><br />
+          <a href="login.html">Back to sign in</a>
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const form = document.getElementById("verifyForm");
+    const alertEl = document.getElementById("alert");
+    const btn = document.getElementById("submitBtn");
+    const emailEl = document.getElementById("email");
+
+    // Prefill email from ?email= passed by register/login.
+    const qp = new URLSearchParams(location.search);
+    if (qp.get("email")) emailEl.value = qp.get("email");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideAlert(alertEl);
+      btn.disabled = true; btn.textContent = "Verifying…";
+      try {
+        await api.verify({ email: emailEl.value.trim(), code: document.getElementById("code").value.trim() });
+        showAlert(alertEl, "success", "Account verified! Redirecting to sign in…");
+        setTimeout(() => (window.location.href = "login.html"), 1300);
+      } catch (err) {
+        showAlert(alertEl, "error", err.message || "Verification failed.");
+      } finally {
+        btn.disabled = false; btn.textContent = "Verify account";
+      }
+    });
+
+    // Resend reuses the reset-password endpoint, which re-sends a fresh code.
+    document.getElementById("resend").addEventListener("click", async (e) => {
+      e.preventDefault();
+      hideAlert(alertEl);
+      if (!emailEl.value.trim()) { showAlert(alertEl, "error", "Enter your email first."); return; }
+      try {
+        await api.resetPassword({ email: emailEl.value.trim() });
+        showAlert(alertEl, "success", "A new code has been sent to your email.");
+      } catch (err) {
+        showAlert(alertEl, "error", err.message || "Could not resend the code.");
+      }
+    });
+  </script>
+</body>
+</html>

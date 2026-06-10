@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StageLink — Create event</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h1>Create event</h1>
+          <p id="sub">Schedule a new event.</p>
+        </div>
+        <a class="btn secondary inline" href="planning.html">← Back to planning</a>
+      </div>
+
+      <div class="card span-2" style="max-width:680px">
+        <div class="alert" id="alert"></div>
+        <form id="eventForm" novalidate>
+          <div class="field">
+            <label for="title">Title</label>
+            <input type="text" id="title" placeholder="e.g. Sprint Review" required />
+          </div>
+          <div class="field">
+            <label for="description">Description <span class="muted">(optional)</span></label>
+            <textarea id="description" placeholder="What is this event about?"></textarea>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="start_date">Starts</label>
+              <input type="datetime-local" id="start_date" required />
+            </div>
+            <div class="field">
+              <label for="end_date">Ends</label>
+              <input type="datetime-local" id="end_date" required />
+            </div>
+          </div>
+
+          <!-- School: target groups -->
+          <div class="field" data-target="school" style="display:none">
+            <label for="group_ids">Target groups <span class="muted">(select one or more)</span></label>
+            <select id="group_ids" multiple></select>
+            <div class="hint">Hold Ctrl / Cmd to select multiple groups.</div>
+          </div>
+
+          <!-- Company: target teams -->
+          <div class="field" data-target="company" style="display:none">
+            <label for="team_ids">Target teams <span class="muted">(select one or more)</span></label>
+            <select id="team_ids" multiple></select>
+            <div class="hint">Hold Ctrl / Cmd to select multiple teams.</div>
+          </div>
+
+          <!-- Student note -->
+          <div class="field" data-target="student" style="display:none">
+            <div class="hint">This will be created as a <strong>personal event</strong> visible only to you.</div>
+          </div>
+
+          <button class="btn" type="submit" id="submitBtn">Create event</button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const alertEl = document.getElementById("alert");
+    const btn = document.getElementById("submitBtn");
+    let ME = null;
+
+    (async function () {
+      ME = await requireAuth();
+      if (!ME) return;
+      renderSidebar(ME, "create");
+
+      const subMap = {
+        student: "Create a personal event for your own schedule.",
+        school: "Create an event targeting one or more of your groups.",
+        company: "Create an event targeting one or more of your teams.",
+      };
+      document.getElementById("sub").textContent = subMap[ME.role] || "";
+
+      document.querySelector(`[data-target="${ME.role}"]`).style.display = "block";
+
+      if (ME.role === "school") {
+        fillSelect("group_ids", ME.groups, "No groups yet — create one in Groups / Teams first.");
+      } else if (ME.role === "company") {
+        fillSelect("team_ids", ME.teams, "No teams yet — create one in Groups / Teams first.");
+      }
+    })();
+
+    function fillSelect(id, items, emptyMsg) {
+      const sel = document.getElementById(id);
+      if (!items || !items.length) {
+        sel.innerHTML = "";
+        sel.disabled = true;
+        const hint = document.createElement("div");
+        hint.className = "hint";
+        hint.style.color = "var(--danger)";
+        hint.textContent = emptyMsg;
+        sel.parentNode.appendChild(hint);
+        return;
+      }
+      sel.innerHTML = items.map((x) => `<option value="${x.id}">${esc(x.name)}</option>`).join("");
+    }
+
+    function getSelected(id) {
+      return Array.from(document.getElementById(id).selectedOptions).map((o) => o.value);
+    }
+
+    document.getElementById("eventForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideAlert(alertEl);
+
+      const start = document.getElementById("start_date").value;
+      const end = document.getElementById("end_date").value;
+      if (start && end && new Date(end) < new Date(start)) {
+        showAlert(alertEl, "error", "End date must be after start date.");
+        return;
+      }
+
+      const payload = {
+        title: document.getElementById("title").value.trim(),
+        description: document.getElementById("description").value.trim(),
+        start_date: start,
+        end_date: end,
+      };
+
+      if (ME.role === "school") {
+        const ids = getSelected("group_ids");
+        if (!ids.length) { showAlert(alertEl, "error", "Select at least one group."); return; }
+        payload.group_ids = ids;
+      } else if (ME.role === "company") {
+        const ids = getSelected("team_ids");
+        if (!ids.length) { showAlert(alertEl, "error", "Select at least one team."); return; }
+        payload.team_ids = ids;
+      }
+
+      btn.disabled = true; btn.textContent = "Creating…";
+      try {
+        const res = await api.createEvent(payload);
+        showAlert(alertEl, "success", "Event created (" + (res.created_count || 1) + "). Redirecting…");
+        setTimeout(() => (window.location.href = "planning.html"), 1100);
+      } catch (err) {
+        showAlert(alertEl, "error", err.message || "Could not create event.");
+        btn.disabled = false; btn.textContent = "Create event";
+      }
+    });
+  </script>
+</body>
+</html>

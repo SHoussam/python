@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StageLink — Planning</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h1>Planning</h1>
+          <p id="sub">Events that concern you.</p>
+        </div>
+        <a class="btn inline" href="create-event.html">➕ New event</a>
+      </div>
+
+      <div class="alert" id="alert"></div>
+      <div id="content"><div class="spinner"></div></div>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const alertEl = document.getElementById("alert");
+    let ME = null;
+
+    (async function () {
+      ME = await requireAuth();
+      if (!ME) return;
+      renderSidebar(ME, "planning");
+      const subMap = {
+        student: "Your personal, group and team events.",
+        school: "Events you created for your groups.",
+        company: "Events you created for your teams.",
+      };
+      document.getElementById("sub").textContent = subMap[ME.role] || "";
+      paint(ME.events || []);
+    })();
+
+    function paint(events) {
+      const content = document.getElementById("content");
+      if (!events.length) {
+        content.innerHTML = `<div class="empty"><span class="ic">🗓️</span>No events yet.<br /><a href="create-event.html">Create your first event</a></div>`;
+        return;
+      }
+      content.innerHTML = `<div class="list">${events.map(rowFor).join("")}</div>`;
+      content.querySelectorAll("[data-remove]").forEach((btn) => {
+        btn.addEventListener("click", () => remove(btn.dataset.remove, btn));
+      });
+    }
+
+    function rowFor(ev) {
+      const editUrl = "edit-event.html?id=" + encodeURIComponent(ev.id) + "&title=" + encodeURIComponent(ev.title || "");
+      return `
+        <div class="list-item" id="ev-${ev.id}">
+          <div class="li-main">
+            <div class="li-title">${esc(ev.title)}</div>
+            <div class="li-sub">Event #${esc(ev.id)}</div>
+          </div>
+          <div class="li-actions">
+            <a class="btn secondary sm" href="${editUrl}">Edit</a>
+            <button class="btn danger sm" data-remove="${ev.id}">Remove</button>
+          </div>
+        </div>`;
+    }
+
+    async function remove(id, btn) {
+      if (!confirm("Remove this event? This cannot be undone.")) return;
+      hideAlert(alertEl);
+      btn.disabled = true; btn.textContent = "…";
+      try {
+        await api.removeEvent(id);
+        const row = document.getElementById("ev-" + id);
+        if (row) row.remove();
+        showAlert(alertEl, "success", "Event removed.");
+        if (!document.querySelector(".list-item")) paint([]);
+      } catch (err) {
+        showAlert(alertEl, "error", err.status === 403
+          ? "You can only remove events you created."
+          : (err.message || "Could not remove event."));
+        btn.disabled = false; btn.textContent = "Remove";
+      }
+    }
+  </script>
+</body>
+</html>
