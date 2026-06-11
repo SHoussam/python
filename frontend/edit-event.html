@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StageLink — Edit event</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=4" />
 </head>
 <body>
   <div class="app">
@@ -53,7 +53,7 @@
     </main>
   </div>
 
-  <script src="js/api.js"></script>
+  <script src="js/api.js?v=4"></script>
   <script>
     const alertEl = document.getElementById("alert");
     const btn = document.getElementById("submitBtn");
@@ -70,10 +70,23 @@
         document.getElementById("editForm").style.display = "none";
         return;
       }
-      // Prefill the title (the only detail the API exposes in lists).
+      // Prefill from the values passed by the planning calendar.
       if (qp.get("title")) document.getElementById("title").value = qp.get("title");
+      if (qp.get("desc")) document.getElementById("description").value = qp.get("desc");
+      if (qp.get("start")) setLocal("start_date", qp.get("start"));
+      if (qp.get("end")) setLocal("end_date", qp.get("end"));
       document.getElementById("sub").textContent = "Editing event #" + eventId + ".";
     })();
+
+    // Convert an ISO datetime into the value a datetime-local input expects.
+    function setLocal(id, iso) {
+      const d = new Date(iso);
+      if (isNaN(d)) return;
+      const pad = (n) => String(n).padStart(2, "0");
+      document.getElementById(id).value =
+        d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+        "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    }
 
     document.getElementById("editForm").addEventListener("submit", async (e) => {
       e.preventDefault();

@@ -37,6 +37,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         import os
         super().__init__(*args, directory=os.path.dirname(os.path.abspath(__file__)), **kwargs)
 
+    # Stop browsers from caching stale HTML/JS/CSS — always revalidate.
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self.send_header("Pragma", "no-cache")
+        super().end_headers()
+
     def do_GET(self):
         if self.path.startswith("/api/"):
             self.proxy("GET")
@@ -60,6 +66,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         for h in ("Content-Type", "Cookie", "X-CSRFToken", "X-Requested-With", "Accept"):
             if self.headers.get(h):
                 fwd[h] = self.headers.get(h)
+        # Skip ngrok's free-tier browser-warning page when the backend is an ngrok URL.
+        fwd["ngrok-skip-browser-warning"] = "true"
 
         req = urllib.request.Request(url, data=body, headers=fwd, method=method)
         try:

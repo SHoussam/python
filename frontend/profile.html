@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StageLink — Profile</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=4" />
 </head>
 <body>
   <div class="app">
@@ -15,22 +15,61 @@
           <h1>Dashboard</h1>
           <p id="welcome">Your personal overview.</p>
         </div>
-        <a class="btn inline" href="create-event.html">➕ New event</a>
+        <a class="btn inline" href="create-event.html">+ New event</a>
       </div>
 
       <div id="content"><div class="spinner"></div></div>
     </main>
   </div>
 
-  <script src="js/api.js"></script>
+  <script src="js/api.js?v=4"></script>
   <script>
     (async function () {
       const me = await requireAuth();
       if (!me) return;
       renderSidebar(me, "profile");
       document.getElementById("welcome").textContent = "Welcome back, " + me.first_name + " — here's your " + me.role + " overview.";
-      document.getElementById("content").innerHTML = render(me);
+      try {
+        const data = await loadData(me);
+        document.getElementById("content").innerHTML = render(me, data);
+      } catch (err) {
+        document.getElementById("content").innerHTML =
+          '<div class="empty">Could not load your dashboard. ' + esc((err && err.message) || "") + "</div>";
+      }
     })();
+
+    // /me is now profile-only; events and groups/teams come from their own endpoints.
+    async function loadData(me) {
+      const evResp = await api.events().catch(() => ({ events: [] }));
+      const events = evResp.events || [];
+
+      if (me.role === "school") {
+        const g = await api.groups().catch(() => ({ groups: [] }));
+        const groups = (g.groups || []).filter((x) => me.school && x.school && x.school.id === me.school.id);
+        return { events, groups, students: uniqueStudents(groups) };
+      }
+      if (me.role === "company") {
+        const t = await api.teams().catch(() => ({ teams: [] }));
+        const teams = (t.teams || []).filter((x) => me.company && x.company && x.company.id === me.company.id);
+        return { events, teams, students: uniqueStudents(teams) };
+      }
+      // student: derive school & company from the group/team lookups
+      const [g, t] = await Promise.all([
+        api.groups().catch(() => ({ groups: [] })),
+        api.teams().catch(() => ({ teams: [] })),
+      ]);
+      const myGroup = me.group ? (g.groups || []).find((x) => x.id === me.group.id) : null;
+      const myTeam = me.team ? (t.teams || []).find((x) => x.id === me.team.id) : null;
+      return { events, school: myGroup && myGroup.school, company: myTeam && myTeam.company };
+    }
+
+    function uniqueStudents(containers) {
+      const seen = new Set(), out = [];
+      containers.forEach((c) => (c.students || []).forEach((s) => {
+        if (!seen.has(s.id)) { seen.add(s.id); out.push(s); }
+      }));
+      return out;
+    }
 
     function statCard(num, lbl) {
       return `<div class="card"><div class="stat"><span class="num">${num}</span><span class="lbl">${esc(lbl)}</span></div></div>`;
@@ -43,7 +82,9 @@
       return `<div class="card span-2"><h3>${esc(title)}</h3>${body}</div>`;
     }
 
-    function render(me) {
+    function render(me, data) {
+      data = data || {};
+      const events = data.events || [];
       const identity = `
         <div class="card">
           <h3>Account</h3>
@@ -63,28 +104,28 @@
             <h3>Memberships</h3>
             <dl class="kv">
               <dt>Group</dt><dd>${me.group ? esc(me.group.name) : '<span class="muted">—</span>'}</dd>
-              <dt>School</dt><dd>${me.school ? esc(me.school.name) : '<span class="muted">—</span>'}</dd>
+              <dt>School</dt><dd>${data.school ? esc(data.school.name) : '<span class="muted">—</span>'}</dd>
               <dt>Team</dt><dd>${me.team ? esc(me.team.name) : '<span class="muted">—</span>'}</dd>
-              <dt>Company</dt><dd>${me.company ? esc(me.company.name) : '<span class="muted">—</span>'}</dd>
+              <dt>Company</dt><dd>${data.company ? esc(data.company.name) : '<span class="muted">—</span>'}</dd>
             </dl>
           </div>`;
         cards = identity + assoc +
-          statCard((me.events || []).length, "Events visible to you") +
-          listCard("Your events", me.events, "No events yet. Create a personal event to get started.");
+          statCard(events.length, "Events visible to you") +
+          listCard("Your events", events, "No events yet. Create a personal event to get started.");
       } else if (me.role === "school") {
         cards = identity +
-          statCard((me.groups || []).length, "Groups") +
-          statCard((me.students || []).length, "Students") +
-          statCard((me.events || []).length, "Events created") +
-          listCard("Your groups", me.groups, "No groups yet. Create one in Groups / Teams.") +
-          listCard("Your events", me.events, "No events created yet.");
+          statCard((data.groups || []).length, "Groups") +
+          statCard((data.students || []).length, "Students") +
+          statCard(events.length, "Events created") +
+          listCard("Your groups", data.groups, "No groups yet. Create one in Groups / Teams.") +
+          listCard("Your events", events, "No events created yet.");
       } else if (me.role === "company") {
         cards = identity +
-          statCard((me.teams || []).length, "Teams") +
-          statCard((me.students || []).length, "Interns") +
-          statCard((me.events || []).length, "Events created") +
-          listCard("Your teams", me.teams, "No teams yet. Create one in Groups / Teams.") +
-          listCard("Your events", me.events, "No events created yet.");
+          statCard((data.teams || []).length, "Teams") +
+          statCard((data.students || []).length, "Interns") +
+          statCard(events.length, "Events created") +
+          listCard("Your teams", data.teams, "No teams yet. Create one in Groups / Teams.") +
+          listCard("Your events", events, "No events created yet.");
       }
 
       return `<div class="cards">${cards}</div>`;

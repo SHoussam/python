@@ -131,13 +131,16 @@ function renderSidebar(me, active) {
   if (!el) return;
   const link = (href, ic, label, key) =>
     `<a href="${href}" class="${active === key ? "active" : ""}"><span class="ic">${ic}</span>${label}</a>`;
+  const navImg = (src) => `<img class="nav-img" src="${src}" alt="" onerror="this.style.display='none'">`;
+  const personIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>';
+  const plusIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
   el.innerHTML = `
-    <div class="brand">Stage<span>Link</span></div>
+    <div class="brand"><img class="brand-logo" src="images/logo.png" alt="" onerror="this.style.display='none'">Stage<span>Link</span></div>
     <nav class="nav">
-      ${link("profile.html", "👤", "Profile", "profile")}
-      ${link("planning.html", "🗓️", "Planning", "planning")}
-      ${link("create-event.html", "➕", "Create Event", "create")}
-      ${link("groups-teams.html", "👥", "Groups / Teams", "groups")}
+      ${link("profile.html", personIcon, "Profile", "profile")}
+      ${link("planning.html", navImg("images/calandar.png"), "Planning", "planning")}
+      ${link("create-event.html", plusIcon, "Create Event", "create")}
+      ${link("groups-teams.html", navImg("images/briefcase.png"), "Groups / Teams", "groups")}
     </nav>
     <div class="me">
       <div class="name">${me ? esc(me.first_name + " " + me.last_name) : ""}</div>
