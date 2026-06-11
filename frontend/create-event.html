@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StageLink — Create event</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=3" />
 </head>
 <body>
   <div class="app">
@@ -65,7 +65,7 @@
     </main>
   </div>
 
-  <script src="js/api.js"></script>
+  <script src="js/api.js?v=3"></script>
   <script>
     const alertEl = document.getElementById("alert");
     const btn = document.getElementById("submitBtn");
@@ -86,9 +86,13 @@
       document.querySelector(`[data-target="${ME.role}"]`).style.display = "block";
 
       if (ME.role === "school") {
-        fillSelect("group_ids", ME.groups, "No groups yet — create one in Groups / Teams first.");
+        const all = await api.groups().catch(() => ({ groups: [] }));
+        const mine = (all.groups || []).filter((g) => ME.school && g.school && g.school.id === ME.school.id);
+        fillSelect("group_ids", mine, "No groups yet — create one in Groups / Teams first.");
       } else if (ME.role === "company") {
-        fillSelect("team_ids", ME.teams, "No teams yet — create one in Groups / Teams first.");
+        const all = await api.teams().catch(() => ({ teams: [] }));
+        const mine = (all.teams || []).filter((t) => ME.company && t.company && t.company.id === ME.company.id);
+        fillSelect("team_ids", mine, "No teams yet — create one in Groups / Teams first.");
       }
     })();
 
