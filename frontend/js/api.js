@@ -35,6 +35,7 @@ async function request(method, path, data) {
     credentials: "include",
     headers: {},
   };
+
   if (method !== "GET") {
     opts.headers["Content-Type"] = "application/x-www-form-urlencoded";
     const csrf = getCookie("csrftoken");
@@ -48,14 +49,21 @@ async function request(method, path, data) {
   } catch (e) {
     throw { status: 0, message: "Cannot reach the server. Is Django running at " + API_BASE + "?" };
   }
+
   try {
     json = await res.json();
   } catch (e) {
     json = {};
   }
+
   if (!res.ok) {
-    throw { status: res.status, message: json.error || json.message || ("Request failed (" + res.status + ")"), data: json };
+    throw {
+      status: res.status,
+      message: json.error || json.message || ("Request failed (" + res.status + ")"),
+      data: json
+    };
   }
+
   return json;
 }
 
@@ -82,6 +90,7 @@ const api = {
   createEvent: (d) => api.post("/events/create/", d),
   editEvent: (id, d) => api.post("/events/" + id + "/edit/", d),
   removeEvent: (id) => api.post("/events/" + id + "/remove/", {}),
+  events: () => api.get("/events/"),
 };
 
 /* ---------- small UI utilities ---------- */
