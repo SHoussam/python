@@ -253,7 +253,7 @@ def remove_event(request, event_id):
 @require_GET
 def list_events(request):
 
-    session_user = request.session.get("user")
+    session_user = request.session.get("id")
 
     if not session_user:
         return JsonResponse(
