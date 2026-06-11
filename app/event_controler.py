@@ -4,8 +4,10 @@ from django.views.decorators.http import require_POST, require_GET
 from django.utils.dateparse import parse_datetime
 from django.db.models import Q
 from .models import Student, User, Event, Team, Group, EventParticipant , Company , School
+from django.views.decorators.csrf import csrf_exempt
 
 
+@csrf_exempt
 @require_POST
 def create_event(request):
     session_user = request.session.get("user")
@@ -120,6 +122,7 @@ def create_event(request):
         },
         status=201
     )
+@csrf_exempt
 @require_POST
 def edit_event(request, event_id):
 
@@ -214,7 +217,7 @@ def edit_event(request, event_id):
         },
         status=200
     )
-
+@csrf_exempt
 @require_POST
 def remove_event(request, event_id):
 
@@ -250,10 +253,11 @@ def remove_event(request, event_id):
         },
         status=200
     )
+@csrf_exempt
 @require_GET
 def list_events(request):
 
-    session_user = request.session.get("id")
+    session_user = request.session.get("user")
 
     if not session_user:
         return JsonResponse(
@@ -273,10 +277,22 @@ def list_events(request):
             user=user
         )
 
+        query = Q(
+            eventparticipant__participant=user
+        )
+
+        if student.group:
+            query |= Q(
+                target_group=student.group
+            )
+
+        if student.team:
+            query |= Q(
+                target_team=student.team
+            )
+
         events = Event.objects.filter(
-            Q(target_group=student.group) |
-            Q(target_team=student.team) |
-            Q(eventparticipant__participant=user)
+            query
         ).distinct()
 
     elif user.role == "school":
@@ -309,29 +325,35 @@ def list_events(request):
             status=400
         )
 
-    events_data = [
-        {
-            "id": event.id,
-            "title": event.title,
-            "description": event.description,
-            "start_date": event.start_date.isoformat(),
-            "end_date": event.end_date.isoformat(),
-            "creator_id": event.creator.id,
-            "target_group_id": (
-                event.target_group.id
-                if event.target_group
-                else None
-            ),
-            "target_team_id": (
-                event.target_team.id
-                if event.target_team
-                else None
-            ),
-        }
-        for event in events
-    ]
-
     return JsonResponse(
-        {"events": events_data},
+        {
+            "events": [
+                {
+                    "id": event.id,
+                    "title": event.title,
+                    "description": event.description,
+                    "start_date": (
+                        event.start_date.isoformat()
+                        if event.start_date else None
+                    ),
+                    "end_date": (
+                        event.end_date.isoformat()
+                        if event.end_date else None
+                    ),
+                    "creator_id": event.creator.id,
+                    "target_group_id": (
+                        event.target_group.id
+                        if event.target_group
+                        else None
+                    ),
+                    "target_team_id": (
+                        event.target_team.id
+                        if event.target_team
+                        else None
+                    ),
+                }
+                for event in events
+            ]
+        },
         status=200
     )

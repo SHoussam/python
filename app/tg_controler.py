@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST, require_GET
-
+from django.views.decorators.csrf import csrf_exempt
 from .models import (
     User,
     Group,
@@ -11,7 +11,7 @@ from .models import (
     Student
 )
 
-
+@csrf_exempt
 @require_POST
 def create_team(request):
 
@@ -69,7 +69,7 @@ def create_team(request):
         status=201
     )
 
-
+@csrf_exempt
 @require_POST
 def create_group(request):
 
@@ -130,6 +130,7 @@ def create_group(request):
     )
 
 
+@csrf_exempt
 @require_GET
 def get_groups(request):
 
@@ -167,7 +168,7 @@ def get_groups(request):
         status=200
     )
 
-
+@csrf_exempt
 @require_GET
 def get_teams(request):
 
