@@ -1,6 +1,6 @@
 from .user_controle import verify_user , registration, login, logout, get_user, reset_password, update_password
 from .tg_controler import get_groups, get_teams,create_team, create_group
-from .event_controler import create_event , edit_event, remove_event
+from .event_controler import create_event , edit_event, remove_event , list_events
 from django.urls import path
 x = "api/v1"
 urlpatterns = [
@@ -29,5 +29,6 @@ urlpatterns = [
     path(f"{x}/events/create/", create_event),
     path(f"{x}/events/<int:event_id>/edit/", edit_event),
     path(f"{x}/events/<int:event_id>/remove/", remove_event),
+    path(f"{x}/events/", list_events),
 
 ]
