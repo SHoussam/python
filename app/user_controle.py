@@ -214,148 +214,84 @@ def update_password(request):
 @csrf_exempt
 @require_GET
 def get_user(request):
+
     session_user = request.session.get("user")
 
     if not session_user:
-        return JsonResponse({"error": "Not authenticated"}, status=401)
+        return JsonResponse(
+            {"error": "Not authenticated"},
+            status=401
+        )
 
-    user = get_object_or_404(User, id=session_user["id"])
+    user = get_object_or_404(
+        User,
+        id=session_user["id"]
+    )
 
     if not user.is_verified:
-        return JsonResponse({"error": "Account not verified"}, status=403)
+        return JsonResponse(
+            {"error": "Account not verified"},
+            status=403
+        )
+
+    user_data = {
+        "id": user.id,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "email": user.email,
+        "role": user.role,
+        "is_verified": user.is_verified,
+        "is_active": user.is_active,
+    }
 
     if user.role == "student":
-        student = get_object_or_404(Student, user=user)
 
-        events = Event.objects.filter(
-            Q(target_group=student.group) |
-            Q(target_team=student.team)
-        ).distinct()
+        student = get_object_or_404(
+            Student,
+            user=user
+        )
 
-        user_data = {
-            "id": user.id,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "email": user.email,
-            "role": user.role,
-            "is_verified": user.is_verified,
-            "is_active": user.is_active,
-            "group": {
+        user_data["group"] = (
+            {
                 "id": student.group.id,
-                "name": student.group.name,
-            } if student.group else None,
-            "team": {
-                "id": student.team.id,
-                "name": student.team.name,
-            } if student.team else None,
-            "school": {
-                "id": student.group.school.id,
-                "name": student.group.school.name,
-            } if student.group else None,
-            "company": {
-                "id": student.team.company.id,
-                "name": student.team.company.name,
-            } if student.team else None,
-            "events": [
-                {
-                    "id": event.id,
-                    "title": event.title,
-                    "start_date": event.start_date,
-                    "end_date": event.end_date,
-                    "description": event.description,
+                "name": student.group.name
+            }
+            if student.group else None
+        )
 
-                }
-                for event in events
-            ],
-        }
+        user_data["team"] = (
+            {
+                "id": student.team.id,
+                "name": student.team.name
+            }
+            if student.team else None
+        )
 
     elif user.role == "school":
-        school = get_object_or_404(School, user=user)
 
-        groups = Group.objects.filter(school=school)
-        students = Student.objects.filter(group__in=groups).distinct()
-        events = Event.objects.filter(target_group__in=groups).distinct()
+        school = get_object_or_404(
+            School,
+            user=user
+        )
 
-        user_data = {
-            "id": user.id,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "email": user.email,
-            "role": user.role,
-            "is_verified": user.is_verified,
-            "is_active": user.is_active,
-            "groups": [
-                {
-                    "id": group.id,
-                    "name": group.name,
-                }
-                for group in groups
-            ],
-            "students": [
-                {
-                    "id": student.id,
-                    "name": str(student),
-                }
-                for student in students
-            ],
-            "events": [
-                {
-                    "id": event.id,
-                    "title": event.title,
-                    "start_date": event.start_date,
-                    "end_date": event.end_date,
-                    "description": event.description,
-                    "target_group": event.target_group.name if event.target_group else None,
-                    "target_team": event.target_team.name if event.target_team else None,
-                }
-                for event in events
-            ],
+        user_data["school"] = {
+            "id": school.id,
+            "name": school.name
         }
 
     elif user.role == "company":
-        company = get_object_or_404(Company, user=user)
 
-        teams = Team.objects.filter(company=company)
-        students = Student.objects.filter(team__in=teams).distinct()
-        events = Event.objects.filter(target_team__in=teams).distinct()
+        company = get_object_or_404(
+            Company,
+            user=user
+        )
 
-        user_data = {
-            "id": user.id,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "email": user.email,
-            "role": user.role,
-            "is_verified": user.is_verified,
-            "is_active": user.is_active,
-            "teams": [
-                {
-                    "id": team.id,
-                    "name": team.name,
-                }
-                for team in teams
-            ],
-            "students": [
-                {
-                    "id": student.id,
-                    "name": str(student),
-                }
-                for student in students
-            ],
-            "events": [
-                {
-                    "id": event.id,
-                    "title": event.title,
-                    "start_date": event.start_date,
-                    "end_date": event.end_date,
-                    "description": event.description,
-                    "target_group": event.target_group.name if event.target_group else None,
-                    "target_team": event.target_team.name if event.target_team else None,
-                }
-                for event in events
-            ],
+        user_data["company"] = {
+            "id": company.id,
+            "name": company.name
         }
 
-    else:
-        return JsonResponse({"error": "Invalid role"}, status=400)
-
-    return JsonResponse(user_data)
+    return JsonResponse(
+        user_data,
+        status=200
+    )

@@ -22,7 +22,7 @@ import urllib.request
 import urllib.error
 
 FRONTEND_PORT = 8080
-DJANGO_ORIGIN = "http://127.0.0.1:8000"
+DJANGO_ORIGIN = "https://twentieth-privatize-system.ngrok-free.dev"
 
 # Headers we must not copy back verbatim (hop-by-hop / handled by the server).
 HOP_BY_HOP = {

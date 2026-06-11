@@ -1,9 +1,9 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.utils.dateparse import parse_datetime
-
-from .models import User, Event, Team, Group, EventParticipant
+from django.db.models import Q
+from .models import Student, User, Event, Team, Group, EventParticipant , Company , School
 
 
 @require_POST
@@ -248,5 +248,90 @@ def remove_event(request, event_id):
         {
             "message": "Event deleted successfully"
         },
+        status=200
+    )
+@require_GET
+def list_events(request):
+
+    session_user = request.session.get("user")
+
+    if not session_user:
+        return JsonResponse(
+            {"error": "Not authenticated"},
+            status=401
+        )
+
+    user = get_object_or_404(
+        User,
+        id=session_user["id"]
+    )
+
+    if user.role == "student":
+
+        student = get_object_or_404(
+            Student,
+            user=user
+        )
+
+        events = Event.objects.filter(
+            Q(target_group=student.group) |
+            Q(target_team=student.team) |
+            Q(eventparticipant__participant=user)
+        ).distinct()
+
+    elif user.role == "school":
+
+        school = get_object_or_404(
+            School,
+            user=user
+        )
+
+        events = Event.objects.filter(
+            Q(target_group__school=school) |
+            Q(creator=user)
+        ).distinct()
+
+    elif user.role == "company":
+
+        company = get_object_or_404(
+            Company,
+            user=user
+        )
+
+        events = Event.objects.filter(
+            Q(target_team__company=company) |
+            Q(creator=user)
+        ).distinct()
+
+    else:
+        return JsonResponse(
+            {"error": "Invalid role"},
+            status=400
+        )
+
+    events_data = [
+        {
+            "id": event.id,
+            "title": event.title,
+            "description": event.description,
+            "start_date": event.start_date.isoformat(),
+            "end_date": event.end_date.isoformat(),
+            "creator_id": event.creator.id,
+            "target_group_id": (
+                event.target_group.id
+                if event.target_group
+                else None
+            ),
+            "target_team_id": (
+                event.target_team.id
+                if event.target_team
+                else None
+            ),
+        }
+        for event in events
+    ]
+
+    return JsonResponse(
+        {"events": events_data},
         status=200
     )
