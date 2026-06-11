@@ -260,6 +260,10 @@ def get_user(request):
                 {
                     "id": event.id,
                     "title": event.title,
+                    "start_date": event.start_date,
+                    "end_date": event.end_date,
+                    "description": event.description,
+
                 }
                 for event in events
             ],
@@ -298,6 +302,11 @@ def get_user(request):
                 {
                     "id": event.id,
                     "title": event.title,
+                    "start_date": event.start_date,
+                    "end_date": event.end_date,
+                    "description": event.description,
+                    "target_group": event.target_group.name if event.target_group else None,
+                    "target_team": event.target_team.name if event.target_team else None,
                 }
                 for event in events
             ],
@@ -336,6 +345,11 @@ def get_user(request):
                 {
                     "id": event.id,
                     "title": event.title,
+                    "start_date": event.start_date,
+                    "end_date": event.end_date,
+                    "description": event.description,
+                    "target_group": event.target_group.name if event.target_group else None,
+                    "target_team": event.target_team.name if event.target_team else None,
                 }
                 for event in events
             ],
